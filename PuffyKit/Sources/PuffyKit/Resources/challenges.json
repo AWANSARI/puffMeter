@@ -1,0 +1,67 @@
+[
+  {
+    "id": "2026-10-morning-momentum",
+    "month": "2026-10",
+    "title": "Morning momentum",
+    "description": "Scan on 20 different mornings this month. Consistency earns the October Star.",
+    "kind": "scanDays",
+    "target": 20,
+    "requiresJoin": false,
+    "rewardAwardID": "challenge-2026-10-star",
+    "symbol": "sunrise",
+    "accent": "dePuff"
+  },
+  {
+    "id": "2026-10-hydration",
+    "month": "2026-10",
+    "title": "Hydration check-in",
+    "description": "Log your water on 15 days. No perfect amount required, just a check-in.",
+    "kind": "habitDays",
+    "habit": "water",
+    "target": 15,
+    "requiresJoin": true,
+    "rewardAwardID": "challenge-2026-10-water",
+    "rewardText": "Earn the October Water badge",
+    "symbol": "drop",
+    "accent": "habits"
+  },
+  {
+    "id": "2026-11-wind-down",
+    "month": "2026-11",
+    "title": "A little wind-down",
+    "description": "Log your sleep on 15 nights this month. Rest shows up in the mirror.",
+    "kind": "habitDays",
+    "habit": "sleep",
+    "target": 15,
+    "requiresJoin": true,
+    "rewardAwardID": "challenge-2026-11-sleep",
+    "rewardText": "Earn the November Rest badge",
+    "symbol": "moon.stars",
+    "accent": "habits"
+  },
+  {
+    "id": "2026-11-morning-momentum",
+    "month": "2026-11",
+    "title": "Morning momentum",
+    "description": "Scan on 20 different mornings this month. Consistency earns the November Star.",
+    "kind": "scanDays",
+    "target": 20,
+    "requiresJoin": false,
+    "rewardAwardID": "challenge-2026-11-star",
+    "symbol": "sunrise",
+    "accent": "dePuff"
+  },
+  {
+    "id": "2026-12-rings",
+    "month": "2026-12",
+    "title": "Ring season",
+    "description": "Close all three rings on 10 days this month.",
+    "kind": "allRingsDays",
+    "target": 10,
+    "requiresJoin": true,
+    "rewardAwardID": "challenge-2026-12-rings",
+    "rewardText": "Earn the December Rings badge",
+    "symbol": "circle.circle",
+    "accent": "scan"
+  }
+]

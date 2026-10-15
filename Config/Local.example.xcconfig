@@ -1,0 +1,14 @@
+// Copy to Config/Local.xcconfig (git-ignored) to run PuffyMeter on your own iPhone.
+
+// Your Team ID: Xcode > Settings > Accounts > select your Apple ID > Team ID column,
+// or developer.apple.com > Membership. Free Apple IDs show a "Personal Team".
+DEVELOPMENT_TEAM = ABCDE12345
+
+// Bundle IDs must be unique to your team. Use something with your name in it.
+PUFFY_BUNDLE_ID = com.yourname.puffymeter
+PUFFY_APP_GROUP = group.com.yourname.puffymeter
+
+// Free Apple ID (Personal Team) only: Sign in with Apple isn't available, so use
+// these two lines. Paid Apple Developer Program members can delete them.
+PUFFY_APP_ENTITLEMENTS = PuffyMeter/PuffyMeter-PersonalTeam.entitlements
+PUFFY_APPLE_SIGN_IN = NO

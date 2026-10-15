@@ -1,0 +1,702 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		561ADE6D0526C14E42B462B8 /* PuffyMeterWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BBBECB002ACEDC4C152562C /* PuffyMeterWidgets.swift */; };
+		5804C917F7F9461C90F8B34F /* LiveFaceCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAC964469F75ADB88C60E4E2 /* LiveFaceCamera.swift */; };
+		5DF104928470A25471D71929 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = DB0319A5F3275F0B1579B141 /* PrivacyInfo.xcprivacy */; };
+		66DBD73071829C3A093AC9E0 /* VisionFaceAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FB25B18070D23216B43BCCE /* VisionFaceAnalyzer.swift */; };
+		83A24CFB6BA6F75F409852F9 /* PuffyMeterWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E5123D321772D7028556C551 /* PuffyMeterWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		9671EE39D4F6CB08C2BEC337 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DED73D10A95BF812BD475F24 /* WidgetKit.framework */; };
+		9A029CDC9DFE8D06C54830E6 /* PuffyKit in Frameworks */ = {isa = PBXBuildFile; productRef = D5130BE3F9B9AAD5BD458541 /* PuffyKit */; };
+		9ECA531E3662FE81BBD475EC /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = DAC841FFC7019E5DC75ACF5F /* GoogleSignIn */; };
+		AC90EC0A054D6294F54E7896 /* GoogleAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43968C75CF6A1F0EB80B752D /* GoogleAuthService.swift */; };
+		C5B567D801E2F12FF4232D02 /* PuffyMeterApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7735CD6A344182E3843E8D18 /* PuffyMeterApp.swift */; };
+		CF4EF60F094C6F711A553590 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 94B332F0882ADAA33460184C /* SwiftUI.framework */; };
+		E877ACCA07F635D0E5E3A453 /* PuffyKit in Frameworks */ = {isa = PBXBuildFile; productRef = 62FC49F6DF5BD2BC7FAD1598 /* PuffyKit */; };
+		EDD9186C688DAAA8C90BACC3 /* PuffyMeterUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E6BD8D72C4BCDDBAF5BABA5 /* PuffyMeterUITests.swift */; };
+		EE3EC332DED60DEE30B269A4 /* LiveServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E3D4651DFADCBDF30455AAB /* LiveServices.swift */; };
+		F3AD753F8C7DCA220206BCFC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C3BB0466625B604CF176334D /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		4C85D7F035AD0F8BEE07ABFA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2368D3675EA48FCE34BE96EE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5EC3166152FF6FDF7951B1D8;
+			remoteInfo = PuffyMeter;
+		};
+		9D68A338D8E590ED7918AD8A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2368D3675EA48FCE34BE96EE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 595C20851A1ECEFB27EE94A1;
+			remoteInfo = PuffyMeterWidgets;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		1738DE6BAE04847672932A83 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				83A24CFB6BA6F75F409852F9 /* PuffyMeterWidgets.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		26A914FBDCEE2B56B075DCEC /* PuffyMeter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PuffyMeter.entitlements; sourceTree = "<group>"; };
+		2E3D4651DFADCBDF30455AAB /* LiveServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveServices.swift; sourceTree = "<group>"; };
+		43968C75CF6A1F0EB80B752D /* GoogleAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleAuthService.swift; sourceTree = "<group>"; };
+		52A18BB93DC6308061004140 /* PuffyMeterUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PuffyMeterUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5FB25B18070D23216B43BCCE /* VisionFaceAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionFaceAnalyzer.swift; sourceTree = "<group>"; };
+		6FE62469D21B2CB16E0DCAD5 /* PuffyMeter-PersonalTeam.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "PuffyMeter-PersonalTeam.entitlements"; sourceTree = "<group>"; };
+		7735CD6A344182E3843E8D18 /* PuffyMeterApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PuffyMeterApp.swift; sourceTree = "<group>"; };
+		7BBBECB002ACEDC4C152562C /* PuffyMeterWidgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PuffyMeterWidgets.swift; sourceTree = "<group>"; };
+		94B332F0882ADAA33460184C /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		987F3C41BA50652373FFF768 /* PuffyMeter.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = PuffyMeter.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9E6BD8D72C4BCDDBAF5BABA5 /* PuffyMeterUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PuffyMeterUITests.swift; sourceTree = "<group>"; };
+		AA12989EF9CFA274D41E2627 /* PuffyMeterWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PuffyMeterWidgets.entitlements; sourceTree = "<group>"; };
+		BDB07B8BF47A8983C7EE591F /* PuffyKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = PuffyKit; path = PuffyKit; sourceTree = SOURCE_ROOT; };
+		C3BB0466625B604CF176334D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		DB0319A5F3275F0B1579B141 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		DED73D10A95BF812BD475F24 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		DF63CF3BBA9216236AD546DB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		E5123D321772D7028556C551 /* PuffyMeterWidgets.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = PuffyMeterWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		FAC964469F75ADB88C60E4E2 /* LiveFaceCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveFaceCamera.swift; sourceTree = "<group>"; };
+		FB63BD6BF7B1DB116DC7BB8F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		FD55CC088694888A8327C45E /* Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Base.xcconfig; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		230F32948184B818C203025B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E877ACCA07F635D0E5E3A453 /* PuffyKit in Frameworks */,
+				9ECA531E3662FE81BBD475EC /* GoogleSignIn in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		98E683AF8D98B8B83F265565 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9A029CDC9DFE8D06C54830E6 /* PuffyKit in Frameworks */,
+				9671EE39D4F6CB08C2BEC337 /* WidgetKit.framework in Frameworks */,
+				CF4EF60F094C6F711A553590 /* SwiftUI.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0ED7B6C12705DBFF27542A8C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				987F3C41BA50652373FFF768 /* PuffyMeter.app */,
+				52A18BB93DC6308061004140 /* PuffyMeterUITests.xctest */,
+				E5123D321772D7028556C551 /* PuffyMeterWidgets.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		22EBA8F15062ED725AC656E3 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				FD55CC088694888A8327C45E /* Base.xcconfig */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		2B8D21F2E7A60BB671A03189 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				C3BB0466625B604CF176334D /* Assets.xcassets */,
+				DB0319A5F3275F0B1579B141 /* PrivacyInfo.xcprivacy */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		2C232414D2DB735657A8B853 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				43968C75CF6A1F0EB80B752D /* GoogleAuthService.swift */,
+				2E3D4651DFADCBDF30455AAB /* LiveServices.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		3C21B86D6F02D833714E63E1 /* PuffyMeterUITests */ = {
+			isa = PBXGroup;
+			children = (
+				9E6BD8D72C4BCDDBAF5BABA5 /* PuffyMeterUITests.swift */,
+			);
+			path = PuffyMeterUITests;
+			sourceTree = "<group>";
+		};
+		8355357FE1EB9D9163BE6A4B /* Camera */ = {
+			isa = PBXGroup;
+			children = (
+				FAC964469F75ADB88C60E4E2 /* LiveFaceCamera.swift */,
+				5FB25B18070D23216B43BCCE /* VisionFaceAnalyzer.swift */,
+			);
+			path = Camera;
+			sourceTree = "<group>";
+		};
+		91D28B297124CE57A3AD12BE = {
+			isa = PBXGroup;
+			children = (
+				22EBA8F15062ED725AC656E3 /* Config */,
+				E251D4611A118E9CAE9C77B5 /* Packages */,
+				AA606A88CC633E7AAE9E9595 /* PuffyMeter */,
+				3C21B86D6F02D833714E63E1 /* PuffyMeterUITests */,
+				D1E01CA171CA2301AC035F3D /* PuffyMeterWidgets */,
+				E0BBA3B9E931EA46E22415E3 /* Frameworks */,
+				0ED7B6C12705DBFF27542A8C /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		AA606A88CC633E7AAE9E9595 /* PuffyMeter */ = {
+			isa = PBXGroup;
+			children = (
+				DF63CF3BBA9216236AD546DB /* Info.plist */,
+				6FE62469D21B2CB16E0DCAD5 /* PuffyMeter-PersonalTeam.entitlements */,
+				26A914FBDCEE2B56B075DCEC /* PuffyMeter.entitlements */,
+				F40EFFF92E27D86BE0B59B93 /* App */,
+				8355357FE1EB9D9163BE6A4B /* Camera */,
+				2B8D21F2E7A60BB671A03189 /* Resources */,
+				2C232414D2DB735657A8B853 /* Services */,
+			);
+			path = PuffyMeter;
+			sourceTree = "<group>";
+		};
+		D1E01CA171CA2301AC035F3D /* PuffyMeterWidgets */ = {
+			isa = PBXGroup;
+			children = (
+				FB63BD6BF7B1DB116DC7BB8F /* Info.plist */,
+				AA12989EF9CFA274D41E2627 /* PuffyMeterWidgets.entitlements */,
+				7BBBECB002ACEDC4C152562C /* PuffyMeterWidgets.swift */,
+			);
+			path = PuffyMeterWidgets;
+			sourceTree = "<group>";
+		};
+		E0BBA3B9E931EA46E22415E3 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				94B332F0882ADAA33460184C /* SwiftUI.framework */,
+				DED73D10A95BF812BD475F24 /* WidgetKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		E251D4611A118E9CAE9C77B5 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				BDB07B8BF47A8983C7EE591F /* PuffyKit */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		F40EFFF92E27D86BE0B59B93 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				7735CD6A344182E3843E8D18 /* PuffyMeterApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		595C20851A1ECEFB27EE94A1 /* PuffyMeterWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F755ACF2E3E5A7333E401591 /* Build configuration list for PBXNativeTarget "PuffyMeterWidgets" */;
+			buildPhases = (
+				D86631349B6234EEF47E98C0 /* Sources */,
+				98E683AF8D98B8B83F265565 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PuffyMeterWidgets;
+			packageProductDependencies = (
+				D5130BE3F9B9AAD5BD458541 /* PuffyKit */,
+			);
+			productName = PuffyMeterWidgets;
+			productReference = E5123D321772D7028556C551 /* PuffyMeterWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		5EC3166152FF6FDF7951B1D8 /* PuffyMeter */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DC0F5007F57B2BDB4577EEEB /* Build configuration list for PBXNativeTarget "PuffyMeter" */;
+			buildPhases = (
+				247DBDDB37C95B1DF32FEC4A /* Sources */,
+				1A7AED8E4EE7E24FB0B7EA0D /* Resources */,
+				230F32948184B818C203025B /* Frameworks */,
+				1738DE6BAE04847672932A83 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				318AD1581FC218A0E6F42737 /* PBXTargetDependency */,
+			);
+			name = PuffyMeter;
+			packageProductDependencies = (
+				62FC49F6DF5BD2BC7FAD1598 /* PuffyKit */,
+				DAC841FFC7019E5DC75ACF5F /* GoogleSignIn */,
+			);
+			productName = PuffyMeter;
+			productReference = 987F3C41BA50652373FFF768 /* PuffyMeter.app */;
+			productType = "com.apple.product-type.application";
+		};
+		93404918521636C1071AB0F7 /* PuffyMeterUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 40694EA528A8A4493F9A3696 /* Build configuration list for PBXNativeTarget "PuffyMeterUITests" */;
+			buildPhases = (
+				61CF2FE227BBFAAD96A240AD /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AA7F1DD2B85BED5AF0C03370 /* PBXTargetDependency */,
+			);
+			name = PuffyMeterUITests;
+			packageProductDependencies = (
+			);
+			productName = PuffyMeterUITests;
+			productReference = 52A18BB93DC6308061004140 /* PuffyMeterUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		2368D3675EA48FCE34BE96EE /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					595C20851A1ECEFB27EE94A1 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+					5EC3166152FF6FDF7951B1D8 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+					93404918521636C1071AB0F7 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+						TestTargetID = 5EC3166152FF6FDF7951B1D8;
+					};
+				};
+			};
+			buildConfigurationList = 1F9DD43BB8F0AEAAB38930D1 /* Build configuration list for PBXProject "PuffyMeter" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 91D28B297124CE57A3AD12BE;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				B60A0083173D24BF744FDF89 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				C797C64A0C76A7183E44AC77 /* XCLocalSwiftPackageReference "PuffyKit" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 0ED7B6C12705DBFF27542A8C /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				5EC3166152FF6FDF7951B1D8 /* PuffyMeter */,
+				595C20851A1ECEFB27EE94A1 /* PuffyMeterWidgets */,
+				93404918521636C1071AB0F7 /* PuffyMeterUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1A7AED8E4EE7E24FB0B7EA0D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F3AD753F8C7DCA220206BCFC /* Assets.xcassets in Resources */,
+				5DF104928470A25471D71929 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		247DBDDB37C95B1DF32FEC4A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AC90EC0A054D6294F54E7896 /* GoogleAuthService.swift in Sources */,
+				5804C917F7F9461C90F8B34F /* LiveFaceCamera.swift in Sources */,
+				EE3EC332DED60DEE30B269A4 /* LiveServices.swift in Sources */,
+				C5B567D801E2F12FF4232D02 /* PuffyMeterApp.swift in Sources */,
+				66DBD73071829C3A093AC9E0 /* VisionFaceAnalyzer.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		61CF2FE227BBFAAD96A240AD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EDD9186C688DAAA8C90BACC3 /* PuffyMeterUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D86631349B6234EEF47E98C0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				561ADE6D0526C14E42B462B8 /* PuffyMeterWidgets.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		318AD1581FC218A0E6F42737 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 595C20851A1ECEFB27EE94A1 /* PuffyMeterWidgets */;
+			targetProxy = 9D68A338D8E590ED7918AD8A /* PBXContainerItemProxy */;
+		};
+		AA7F1DD2B85BED5AF0C03370 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5EC3166152FF6FDF7951B1D8 /* PuffyMeter */;
+			targetProxy = 4C85D7F035AD0F8BEE07ABFA /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		12BF7EB4139241180F037420 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = FD55CC088694888A8327C45E /* Base.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		2279F91E64EE44CD3ED46496 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = PuffyMeterWidgets/PuffyMeterWidgets.entitlements;
+				INFOPLIST_FILE = PuffyMeterWidgets/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PUFFY_BUNDLE_ID).widgets";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		491552B556722B85F2AD1E63 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "$(PUFFY_APP_ENTITLEMENTS)";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = PuffyMeter/Info.plist;
+				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleDefault;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PUFFY_BUNDLE_ID)";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		614845177C327FA6D5406661 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PUFFY_BUNDLE_ID).uitests";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = PuffyMeter;
+			};
+			name = Release;
+		};
+		8204AD53F801C73131E80094 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "$(PUFFY_APP_ENTITLEMENTS)";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = PuffyMeter/Info.plist;
+				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleDefault;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PUFFY_BUNDLE_ID)";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		CADFEEED1174DC3CE57A79FE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PUFFY_BUNDLE_ID).uitests";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = PuffyMeter;
+			};
+			name = Debug;
+		};
+		E6D146DA8A89153DB62FEADF /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = FD55CC088694888A8327C45E /* Base.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		ED1316D550B85FB858C493B5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = PuffyMeterWidgets/PuffyMeterWidgets.entitlements;
+				INFOPLIST_FILE = PuffyMeterWidgets/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(PUFFY_BUNDLE_ID).widgets";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1F9DD43BB8F0AEAAB38930D1 /* Build configuration list for PBXProject "PuffyMeter" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				12BF7EB4139241180F037420 /* Debug */,
+				E6D146DA8A89153DB62FEADF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		40694EA528A8A4493F9A3696 /* Build configuration list for PBXNativeTarget "PuffyMeterUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CADFEEED1174DC3CE57A79FE /* Debug */,
+				614845177C327FA6D5406661 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		DC0F5007F57B2BDB4577EEEB /* Build configuration list for PBXNativeTarget "PuffyMeter" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				491552B556722B85F2AD1E63 /* Debug */,
+				8204AD53F801C73131E80094 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F755ACF2E3E5A7333E401591 /* Build configuration list for PBXNativeTarget "PuffyMeterWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2279F91E64EE44CD3ED46496 /* Debug */,
+				ED1316D550B85FB858C493B5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		C797C64A0C76A7183E44AC77 /* XCLocalSwiftPackageReference "PuffyKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = PuffyKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		B60A0083173D24BF744FDF89 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		62FC49F6DF5BD2BC7FAD1598 /* PuffyKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PuffyKit;
+		};
+		D5130BE3F9B9AAD5BD458541 /* PuffyKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PuffyKit;
+		};
+		DAC841FFC7019E5DC75ACF5F /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B60A0083173D24BF744FDF89 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 2368D3675EA48FCE34BE96EE /* Project object */;
+}

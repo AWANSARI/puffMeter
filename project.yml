@@ -1,0 +1,110 @@
+name: PuffyMeter
+options:
+  bundleIdPrefix: com.puffymeter
+  deploymentTarget:
+    iOS: "18.0"
+  createIntermediateGroups: true
+  developmentLanguage: en
+configFiles:
+  Debug: Config/Base.xcconfig
+  Release: Config/Base.xcconfig
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    TARGETED_DEVICE_FAMILY: "1"
+    SWIFT_STRICT_CONCURRENCY: complete
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+packages:
+  PuffyKit:
+    path: PuffyKit
+  GoogleSignIn:
+    url: https://github.com/google/GoogleSignIn-iOS
+    from: 8.0.0
+targets:
+  PuffyMeter:
+    type: application
+    platform: iOS
+    sources:
+      - PuffyMeter
+    dependencies:
+      - package: PuffyKit
+      - package: GoogleSignIn
+        product: GoogleSignIn
+      - target: PuffyMeterWidgets
+        embed: true
+    info:
+      path: PuffyMeter/Info.plist
+      properties:
+        CFBundleDisplayName: PuffyMeter
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UIApplicationSupportsIndirectInputEvents: true
+        ITSAppUsesNonExemptEncryption: false
+        NSCameraUsageDescription: "PuffyMeter uses the front camera to capture your daily face scan for a cosmetic puffiness estimate. Photos are saved only to your device and the Google Drive folder you choose."
+        NSFaceIDUsageDescription: "Use Face ID to keep PuffyMeter private."
+        NSHealthShareUsageDescription: "PuffyMeter reads sleep, water and cycle data to show personal patterns alongside your scores. It never writes to Health."
+        NSHealthUpdateUsageDescription: "PuffyMeter doesn't write to Health."
+        GIDClientID: $(GOOGLE_CLIENT_ID)
+        PuffyAppGroup: $(PUFFY_APP_GROUP)
+        PuffyAppleSignIn: $(PUFFY_APPLE_SIGN_IN)
+        CFBundleURLTypes:
+          - CFBundleURLName: com.puffymeter.app
+            CFBundleURLSchemes: [puffymeter]
+          - CFBundleURLName: google
+            CFBundleURLSchemes: [$(GOOGLE_REVERSED_CLIENT_ID)]
+        UIBackgroundModes: [fetch, processing]
+        BGTaskSchedulerPermittedIdentifiers: [com.puffymeter.app.uploads]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(PUFFY_BUNDLE_ID)
+        CODE_SIGN_ENTITLEMENTS: $(PUFFY_APP_ENTITLEMENTS)
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        INFOPLIST_KEY_UIStatusBarStyle: UIStatusBarStyleDefault
+  PuffyMeterWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - PuffyMeterWidgets
+    dependencies:
+      - package: PuffyKit
+      - sdk: WidgetKit.framework
+      - sdk: SwiftUI.framework
+    info:
+      path: PuffyMeterWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: PuffyMeter
+        PuffyAppGroup: $(PUFFY_APP_GROUP)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(PUFFY_BUNDLE_ID).widgets
+        CODE_SIGN_ENTITLEMENTS: PuffyMeterWidgets/PuffyMeterWidgets.entitlements
+        SKIP_INSTALL: YES
+  PuffyMeterUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - PuffyMeterUITests
+    dependencies:
+      - target: PuffyMeter
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(PUFFY_BUNDLE_ID).uitests
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  PuffyMeter:
+    build:
+      targets:
+        PuffyMeter: all
+        PuffyMeterUITests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - PuffyMeterUITests

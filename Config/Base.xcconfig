@@ -1,0 +1,16 @@
+// Shared build settings. Personal values live in git-ignored files included at the bottom:
+//   Config/Secrets.xcconfig  – Google OAuth client (see Secrets.example.xcconfig)
+//   Config/Local.xcconfig    – your signing team and bundle ID (see Local.example.xcconfig)
+
+PUFFY_BUNDLE_ID = com.puffymeter.app
+PUFFY_APP_GROUP = group.com.puffymeter.shared
+PUFFY_APP_ENTITLEMENTS = PuffyMeter/PuffyMeter.entitlements
+PUFFY_APPLE_SIGN_IN = YES
+CODE_SIGN_STYLE = Automatic
+DEVELOPMENT_TEAM =
+
+GOOGLE_CLIENT_ID = REPLACE_ME.apps.googleusercontent.com
+GOOGLE_REVERSED_CLIENT_ID = com.googleusercontent.apps.REPLACE_ME
+
+#include? "Secrets.xcconfig"
+#include? "Local.xcconfig"

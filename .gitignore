@@ -1,0 +1,13 @@
+# Xcode
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+DerivedData/
+build/
+.build/
+.swiftpm/
+# Secrets
+Config/Secrets.xcconfig
+# Local tooling
+lancedb/
+Config/Local.xcconfig
+.DS_Store

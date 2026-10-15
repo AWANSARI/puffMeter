@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PuffyMeter Privacy</title>
+<style>
+  :root { color-scheme: light dark; --bg: #F2F2F7; --card: #fff; --label: #000; --label-2: rgba(60,60,67,.6); --accent: #FF1050; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #000; --card: #1C1C1E; --label: #fff; --label-2: rgba(235,235,245,.6); } }
+  body { margin: 0; background: var(--bg); color: var(--label); font: 17px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 680px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 34px; margin: 0 0 4px; } h2 { font-size: 20px; margin: 28px 0 8px; }
+  p, li { color: var(--label-2); } a { color: var(--accent); }
+  .card { background: var(--card); border-radius: 16px; padding: 16px 20px; margin-top: 16px; }
+</style>
+</head>
+<body>
+<main>
+  <p><a href="/">‹ Back to PuffyMeter</a></p>
+  <h1>Privacy</h1>
+  <p>PuffyMeter is a cosmetic wellness tracker. It is not a medical device and doesn't diagnose anything.</p>
+  <div class="card">
+    <h2>Your face stays yours</h2>
+    <ul>
+      <li>Face analysis runs entirely in your browser. Camera frames are never sent anywhere.</li>
+      <li>Photos and scores are stored on your device (browser storage).</li>
+      <li>If you connect Google Drive, PuffyMeter uploads each day's photo (JPG) and score file (JSON) to the single folder you choose, using the <code>drive.file</code> permission. It can't see the rest of your Drive.</li>
+      <li>There are no PuffyMeter servers, ads, analytics or trackers.</li>
+    </ul>
+    <h2>Google user data</h2>
+    <p>PuffyMeter's use of information received from Google APIs adheres to the Google API Services User Data Policy, including the Limited Use requirements. Your name and email are shown in the app only; they're never sold or shared.</p>
+    <h2>Your controls</h2>
+    <p>Export your data or delete everything from Profile › Your data. Disconnecting Drive or deleting PuffyMeter data doesn't delete the files in your Drive folder; you can remove those in Google Drive.</p>
+    <h2>Terms</h2>
+    <p>PuffyMeter is provided as is, for personal, non-medical use. Scores are estimates that vary with lighting, expression and daily changes.</p>
+  </div>
+</main>
+</body>
+</html>
