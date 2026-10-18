@@ -5,7 +5,7 @@ PuffyMeter as an installable web app (PWA), built with Vite, React and TypeScrip
 | | iOS app | Web app |
 |---|---|---|
 | Face analysis | ARKit / Vision, on device | MediaPipe Face Landmarker, in the browser |
-| Photo storage | App sandbox and your Drive folder | This browser (IndexedDB) and your Drive folder |
+| Photo storage | App sandbox and your Drive folder | This browser, plus optionally a folder on your device, a backup .zip and/or your Drive folder |
 | Sign-in | Google, Sign in with Apple | Google (server-side, Netlify Functions), or no account |
 | Apple Health, Face ID lock, widgets | Yes | Not available on the web |
 | Reminders | Scheduled notifications | Shown when the app is opened after the reminder time |
@@ -25,6 +25,29 @@ The dev server runs at <http://localhost:5173>.
 - **Tests:** `npm test` runs the domain tests, which use the same numbers as the iOS PuffyKit tests, and the sign-in and Drive proxy function tests.
 
 The camera works on `localhost` and on HTTPS sites only. Netlify sites are HTTPS by default.
+
+## Where your data lives
+
+PuffyMeter has no database. Data is always cached in this browser (localStorage and IndexedDB). You choose where else it goes:
+
+| Option | Works on | How it behaves |
+|---|---|---|
+| **A folder on this device** | Desktop Chrome and Edge, Chrome on Android 132+ | Everything is saved as plain files in a folder you pick (File System Access API). On every launch PuffyMeter reads that folder first and uses it if it's newer, so clearing the browser loses nothing. After a browser restart you tap **Open "folder"** once to let it back in. |
+| **Backup file** | Every browser, including iPhone | One `.zip` with the same layout as the folder. Use **Save to Files** on iPhone, or a download elsewhere. Restore it from the first screen ("Already use PuffyMeter? Restore your data") or from Profile › Data storage. |
+| **Google Drive** | Everywhere, once Google sign-in is set up | Each scan's photo and scores file is uploaded to your Drive folder. |
+
+PuffyMeter also asks the browser for persistent storage (`navigator.storage.persist()`). If your data lives only in this browser and hasn't been backed up for a week, Summary shows a reminder.
+
+Folder and backup layout:
+
+```
+puffymeter.json              scans, habits, goals, awards, settings
+photos/2026-10-08_0802.jpg   daily photos
+scores/2026-10-08_0802.json  one scores file per scan (same format as Drive)
+README.txt
+```
+
+**Why data can disappear on iPhone:** Safari can clear website data after a period without visits. The Home Screen app and Safari also keep **separate** storage, so opening PuffyMeter one way and then the other looks like a fresh start. Every Netlify deploy preview URL is a different site with its own empty storage too. Use the Home Screen icon and your main site URL, and save a backup now and then.
 
 ## Deploy to Netlify
 
@@ -77,6 +100,6 @@ Without this setup the site still works fully with **Use without an account**.
 
 - Camera frames are analyzed in the browser and never uploaded.
 - The face model runtime is served from the site itself. The model weights load from Google's MediaPipe storage.
-- Photos and scores stay in this browser and, if you connect it, in the single Drive folder you choose.
+- Photos and scores stay in this browser and, if you choose, in a folder on your device, a backup file, or the single Drive folder you connect.
 - There are no analytics, ads or databases. Sign-in runs in stateless Netlify Functions: the Google refresh token lives only in an encrypted cookie in your browser, and Drive requests are passed straight through to Google.
 - The privacy page is `public/privacy.html`.

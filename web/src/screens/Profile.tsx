@@ -29,7 +29,7 @@ function Row({ icon, label, value, onClick, danger, children }: {
 }
 
 export function Profile() {
-  const { settings, folder, d } = useApp()
+  const { settings, folder, d, snap } = useApp()
   const navigate = useNavigate()
   const [signOut, setSignOut] = useState(false)
   const profile = settings.profile
@@ -88,6 +88,8 @@ export function Profile() {
 
       <div className="list-header">Your data</div>
       <div className="list">
+        <Row icon={<HardDrive size={20} color="var(--link)" />} label="Data storage"
+          value={snap.folder.kind === 'connected' ? 'Folder' : 'This browser'} onClick={() => navigate('/profile/storage')} />
         <Row icon={<Download size={20} color="var(--link)" />} label="Export my data" onClick={() => navigate('/profile/export')} />
         <Row icon={<Hand size={20} color="var(--link)" />} label="Privacy & permissions" onClick={() => navigate('/profile/privacy')} />
         <Row icon={<LogOut size={20} />} label="Sign out" danger onClick={() => setSignOut(true)} />

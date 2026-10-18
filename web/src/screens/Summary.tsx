@@ -1,4 +1,4 @@
-import { CloudAlert, CloudCheck, CloudOff, CloudUpload, Droplet, Flame, HardDrive, Minus, Moon, Plus, Smartphone, Sparkles, TriangleAlert, Utensils } from 'lucide-react'
+import { Archive, CloudAlert, CloudCheck, CloudOff, CloudUpload, Droplet, Flame, HardDrive, Minus, Moon, Plus, Smartphone, Sparkles, TriangleAlert, Utensils } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { fmt } from '../domain/dates'
@@ -19,6 +19,10 @@ export function Summary() {
   const week = trendSeries('W', history, today)
   const zoneDeltas = scan ? history.zoneDeltaVsPrevious(scan.dayKey) : undefined
   const upload = scan ? store.uploadCardState(scan.id) : undefined
+  // Only-in-this-browser data with no recent backup: browsers (especially Safari) can clear it.
+  const lastBackup = settings.lastBackupAt ? new Date(settings.lastBackupAt).getTime() : 0
+  const needsBackup = !snap.demo && history.scans.length >= 3 && snap.folder.kind !== 'connected' && !folder
+    && Date.now() - lastBackup > 7 * 86_400_000
   return (
     <Screen title="Summary" subtitle={fmt.longDay(today)} action={<button className="action" onClick={() => navigate('/goals')}>Edit</button>}>
       {settings.drive.kind === 'needsReconnect' && (
@@ -26,6 +30,11 @@ export function Summary() {
       )}
       {settings.drive.kind === 'notConnected' && settings.onboardingStep === 'complete' && (
         <Banner icon={<HardDrive size={20} />} text="Back up your scans to Google Drive" action="Connect" color="var(--link)" onClick={() => navigate('/profile/drive')} />
+      )}
+
+      {needsBackup && (
+        <Banner icon={<Archive size={20} />} text="Your data is only in this browser. Save a backup so it's never lost." action="Back up"
+          color="var(--link)" onClick={() => navigate('/profile/storage')} />
       )}
 
       <Card>

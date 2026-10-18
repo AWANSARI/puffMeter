@@ -88,6 +88,8 @@ export interface ScanRecord {
   drivePhotoFileID?: string
   driveJSONFileID?: string
   syncState: SyncState
+  /** Photo file name in the local folder / backup ("photos/2026-10-08_0802.jpg"). */
+  fileName?: string
 }
 
 export interface GoalSet {
@@ -158,7 +160,7 @@ export const driveFolder = (d: DriveConnection) =>
   d.kind === 'connected' || d.kind === 'needsReconnect' ? d.folder : undefined
 
 export type OnboardingStep =
-  | 'welcome' | 'signIn' | 'driveLimitedAccess' | 'driveFolderPicker' | 'driveConnected' | 'permissions' | 'baselineScan' | 'complete'
+  | 'welcome' | 'signIn' | 'driveLimitedAccess' | 'driveFolderPicker' | 'driveConnected' | 'storageChoice' | 'permissions' | 'baselineScan' | 'complete'
 
 export interface UserProfile { displayName: string; email?: string; provider: 'google' | 'local' }
 
@@ -173,6 +175,10 @@ export interface Settings {
   theme: 'system' | 'dark' | 'light'
   lastCelebrationDay?: DayKey
   lastSyncAt?: string
+  /** Where data lives besides this browser: a folder on this device the user picked. */
+  storage?: { kind: 'browser' } | { kind: 'folder'; name: string }
+  lastBackupAt?: string
+  lastFolderSaveAt?: string
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -187,6 +193,8 @@ export const DEFAULT_SETTINGS: Settings = {
 
 export interface PersistedState {
   version: 1
+  /** When this state was last written (used to pick the newest copy: browser vs folder). */
+  savedAt?: string
   scans: ScanRecord[]
   habitLogs: HabitLog[]
   goals: GoalSet[]

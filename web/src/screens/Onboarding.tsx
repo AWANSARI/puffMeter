@@ -62,6 +62,7 @@ export function Welcome() {
         {PAGES.map((_, i) => <span key={i} style={{ width: 8, height: 8, borderRadius: 4, background: i === page ? 'var(--accent)' : 'var(--label-3)' }} />)}
       </div>
       <button className="btn primary" onClick={() => (page < 2 ? setPage(page + 1) : finish())}>{page < 2 ? 'Continue' : 'Get started'}</button>
+      <button className="link-btn" style={{ alignSelf: 'center', fontSize: 15 }} onClick={() => navigate('/restore')}>Already use PuffyMeter? Restore your data</button>
       <Disclaimer center>Cosmetic wellness tracking. Not a medical diagnosis.</Disclaimer>
     </main>
   )
@@ -364,7 +365,7 @@ export function Permissions() {
   }, [demo])
   const notificationsSupported = typeof Notification !== 'undefined'
   return (
-    <Screen title="Make it yours" subtitle="PuffyMeter" back tabs={false}>
+    <Screen title="Make it yours" subtitle="PuffyMeter" back={settings.profile?.provider === 'local' ? '/storage' : '/drive/connected'} tabs={false}>
       <p className="body sub" style={{ margin: 0 }}>A few permissions make your morning routine effortless. You can change them anytime.</p>
       <Card>
         <div className="row"><Camera size={22} color="var(--accent)" /><span className="headline grow">Camera</span><span className="pill accent">Required</span></div>

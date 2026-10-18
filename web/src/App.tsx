@@ -5,6 +5,7 @@ import type { OnboardingStep } from './domain/types'
 import { AllRingsClosed, AwardDetail, AwardUnlockSheet, Awards, ChallengesScreen, Goals } from './screens/Awards'
 import { AuthComplete, ConnectDrive, DriveConnected, OnboardingFolderPicker, Permissions, SignIn, Welcome } from './screens/Onboarding'
 import { DriveSettings, ExportData, Privacy, Profile } from './screens/Profile'
+import { FolderGate, RestoreData, StorageChoice, StorageSettings } from './screens/Storage'
 import { ScanFlow, ScanTab } from './screens/Scan'
 import { Summary } from './screens/Summary'
 import { PhotoGrid, Patterns, ScanDetail, TimeLapse, Trends } from './screens/Trends'
@@ -13,7 +14,7 @@ import { ActivityRings } from './ui/rings'
 
 const STEP_ROUTE: Record<OnboardingStep, string> = {
   welcome: '/welcome', signIn: '/signin', driveLimitedAccess: '/drive', driveFolderPicker: '/drive/folders',
-  driveConnected: '/drive/connected', permissions: '/permissions', baselineScan: '/baseline', complete: '/',
+  driveConnected: '/drive/connected', storageChoice: '/storage', permissions: '/permissions', baselineScan: '/baseline', complete: '/',
 }
 const ONBOARDING_PATHS = new Set(Object.values(STEP_ROUTE).filter((p) => p !== '/'))
 
@@ -73,6 +74,9 @@ function Shell() {
   const step = settings.onboardingStep
   // Google returns here after sign-in; it works at any stage of onboarding.
   if (pathname === '/auth/complete') return <AuthComplete />
+  // A saved local folder needs a tap to re-open before anything else is shown.
+  if (snap.folder.kind === 'needsPermission') return <FolderGate />
+  if (pathname === '/restore') return <RestoreData />
   if (step !== 'complete' && !ONBOARDING_PATHS.has(pathname)) return <Navigate to={STEP_ROUTE[step]} replace />
   if (step === 'complete' && ONBOARDING_PATHS.has(pathname)) return <Navigate to="/" replace />
 
@@ -85,6 +89,7 @@ function Shell() {
         <Route path="/drive" element={<ConnectDrive />} />
         <Route path="/drive/folders" element={<OnboardingFolderPicker />} />
         <Route path="/drive/connected" element={<DriveConnected />} />
+        <Route path="/storage" element={<StorageChoice />} />
         <Route path="/permissions" element={<Permissions />} />
         <Route path="/baseline" element={<ScanFlow isBaseline onDone={() => { store.setOnboardingStep('complete'); navigate('/') }} />} />
 
@@ -101,6 +106,7 @@ function Shell() {
         <Route path="/profile/drive" element={<DriveSettings />} />
         <Route path="/profile/export" element={<ExportData />} />
         <Route path="/profile/privacy" element={<Privacy />} />
+        <Route path="/profile/storage" element={<StorageSettings />} />
         <Route path="/goals" element={<Goals />} />
         <Route path="/challenges" element={<ChallengesScreen />} />
         <Route path="*" element={<Navigate to="/" replace />} />

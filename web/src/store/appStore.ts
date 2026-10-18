@@ -15,7 +15,11 @@ import {
 import { createMockDrive, DriveError, GoogleDrive, type DriveApi } from '../services/drive'
 import type { CapturedFace } from '../services/faceCamera'
 import { GoogleAuth, type GoogleSession } from '../services/googleAuth'
-import { PhotoStore, resizeJPEG } from '../services/photoStore'
+import {
+  createBackup, folderDir, folderPermission, folderSupported, openBackup, photoFileName, readPhoto, readState,
+  writeAll, writeScan, writeState, type DataDir, type StateFile,
+} from '../services/dataFolder'
+import { KeyValue, PhotoStore, resizeJPEG } from '../services/photoStore'
 import { sampleFaceJPEG } from '../services/sampleFace'
 
 export const APP_VERSION = '1.0 (web)'
@@ -29,6 +33,13 @@ export type UploadCardState =
   | { kind: 'queued'; count: number }
   | { kind: 'localOnly' }
 
+/** The local data folder: connected, waiting for a tap to re-allow access, or not set up. */
+export type FolderStatus =
+  | { kind: 'none' }
+  | { kind: 'connected'; name: string; lastSavedAt?: string }
+  | { kind: 'needsPermission'; name: string }
+  | { kind: 'error'; name: string; message: string }
+
 export interface AppSnapshot {
   data: PersistedState
   loaded: boolean
@@ -39,7 +50,12 @@ export interface AppSnapshot {
   demo: boolean
   /** Google sign-in is configured on this deploy (Netlify env vars present). */
   googleEnabled: boolean
+  folder: FolderStatus
+  /** The browser promised not to clear PuffyMeter's storage automatically. */
+  persistent?: boolean
 }
+
+const FOLDER_HANDLE_KEY = 'folderHandle'
 
 const isDemo = () => new URLSearchParams(location.search).has('demo')
 
@@ -54,7 +70,7 @@ class AppStore {
   constructor() {
     const demo = isDemo()
     this.drive = demo ? createMockDrive() : GoogleDrive
-    this.snapshot = { data: emptyState(), loaded: false, online: navigator.onLine, awardQueue: [], showAllRingsClosed: false, photosRevision: 0, demo, googleEnabled: demo }
+    this.snapshot = { data: emptyState(), loaded: false, online: navigator.onLine, awardQueue: [], showAllRingsClosed: false, photosRevision: 0, demo, googleEnabled: demo, folder: { kind: 'none' } }
     window.addEventListener('online', () => { this.set({ online: true }); void this.processUploads() })
     window.addEventListener('offline', () => this.set({ online: false }))
     PhotoStore.onChange(() => this.set({ photosRevision: this.snapshot.photosRevision + 1 }))
@@ -85,9 +101,158 @@ class AppStore {
 
   private persist() {
     if (this.snapshot.demo) return // demo data lives in memory only
+    this.snapshot.data.savedAt = new Date().toISOString()
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.snapshot.data))
     } catch { /* storage full or blocked */ }
+    this.scheduleFolderSave()
+  }
+
+  // MARK: Local folder
+
+  private folderHandle?: FileSystemDirectoryHandle
+  private folderTimer = 0
+
+  private folderDir(): DataDir | undefined {
+    return this.folderHandle && this.snapshot.folder.kind === 'connected' ? folderDir(this.folderHandle) : undefined
+  }
+
+  /** Writes puffymeter.json shortly after changes settle (the folder is the durable copy). */
+  private scheduleFolderSave() {
+    if (!this.folderDir()) return
+    clearTimeout(this.folderTimer)
+    this.folderTimer = window.setTimeout(() => void this.saveStateToFolder(), 400)
+  }
+
+  private async saveStateToFolder() {
+    const dir = this.folderDir()
+    const folder = this.snapshot.folder
+    if (!dir || folder.kind !== 'connected') return
+    try {
+      await writeState(dir, this.snapshot.data, APP_VERSION)
+      this.set({ folder: { ...folder, lastSavedAt: new Date().toISOString() } })
+    } catch (e) {
+      this.set({ folder: { kind: 'error', name: folder.name, message: e instanceof Error ? e.message : 'Write failed' } })
+    }
+  }
+
+  private attachFolder(handle: FileSystemDirectoryHandle) {
+    this.folderHandle = handle
+    this.set({ folder: { kind: 'connected', name: handle.name } })
+    PhotoStore.setFallback(async (scanID) => {
+      const scan = this.snapshot.data.scans.find((s) => s.id === scanID)
+      return scan && this.folderHandle ? readPhoto(folderDir(this.folderHandle), scan) : undefined
+    })
+  }
+
+  /** Reads the folder's puffymeter.json and adopts it when it's newer than this browser's copy. */
+  private async syncFromFolder(handle: FileSystemDirectoryHandle): Promise<void> {
+    const file = await readState(folderDir(handle)).catch(() => undefined)
+    this.attachFolder(handle)
+    const local = this.snapshot.data
+    if (file && (!local.savedAt || file.savedAt > local.savedAt || local.scans.length === 0)) {
+      this.adoptState(file.state, { keepFolder: true })
+    } else {
+      void this.saveStateToFolder()
+    }
+  }
+
+  /** Looks inside a folder the user just picked: does it already hold PuffyMeter data? */
+  async inspectFolder(handle: FileSystemDirectoryHandle): Promise<StateFile | undefined> {
+    return readState(folderDir(handle)).catch(() => undefined)
+  }
+
+  /**
+   * Starts using `handle` as the data folder. 'restore' loads the folder's data into the app;
+   * 'save' writes this browser's data (and all photos) into the folder.
+   */
+  async useFolder(handle: FileSystemDirectoryHandle, mode: 'restore' | 'save', onProgress?: (done: number, total: number) => void) {
+    await KeyValue.set(FOLDER_HANDLE_KEY, handle)
+    if (mode === 'restore') {
+      const file = await this.inspectFolder(handle)
+      this.attachFolder(handle)
+      if (file) this.adoptState(file.state, { keepFolder: true })
+    } else {
+      this.attachFolder(handle)
+      await writeAll(folderDir(handle), this.snapshot.data, (id) => PhotoStore.get(PhotoStore.photoKey(id)), APP_VERSION, onProgress)
+    }
+    this.updateSettings({ storage: { kind: 'folder', name: handle.name } })
+    await this.saveStateToFolder()
+  }
+
+  /** Re-allows access after a relaunch (must be called from a tap). */
+  async reconnectFolder(): Promise<boolean> {
+    const handle = this.folderHandle ?? (await KeyValue.get<FileSystemDirectoryHandle>(FOLDER_HANDLE_KEY))
+    if (!handle) return false
+    if ((await folderPermission(handle, true)) !== 'granted') return false
+    await this.syncFromFolder(handle)
+    return true
+  }
+
+  /** Keep going with this browser's copy for now; PuffyMeter asks again next launch. */
+  skipFolderForNow() {
+    this.set({ folder: { kind: 'none' } })
+  }
+
+  async stopUsingFolder() {
+    await KeyValue.remove(FOLDER_HANDLE_KEY)
+    this.folderHandle = undefined
+    PhotoStore.setFallback(undefined)
+    this.set({ folder: { kind: 'none' } })
+    this.updateSettings({ storage: { kind: 'browser' } })
+  }
+
+  // MARK: Backups
+
+  async exportBackup(onProgress?: (done: number, total: number) => void): Promise<Blob> {
+    const blob = await createBackup(this.snapshot.data, (id) => PhotoStore.get(PhotoStore.photoKey(id)), APP_VERSION, onProgress)
+    this.updateSettings({ lastBackupAt: new Date().toISOString() })
+    return blob
+  }
+
+  /** Restores everything from a backup .zip (or a zipped PuffyMeter folder). Returns the scan count. */
+  async restoreBackup(file: Blob, onProgress?: (done: number, total: number) => void): Promise<number> {
+    const backup = await openBackup(file)
+    if (!backup) throw new Error('not_a_backup')
+    await this.importPhotos(backup.dir, backup.state.state.scans, onProgress)
+    this.adoptState(backup.state.state, { keepFolder: true })
+    const dir = this.folderDir()
+    if (dir) await writeAll(dir, this.snapshot.data, (id) => PhotoStore.get(PhotoStore.photoKey(id)), APP_VERSION)
+    return backup.state.state.scans.length
+  }
+
+  private async importPhotos(dir: DataDir, scans: ScanRecord[], onProgress?: (done: number, total: number) => void) {
+    let done = 0
+    for (const scan of scans) {
+      const blob = await readPhoto(dir, scan)
+      if (blob) await PhotoStore.save(scan.id, blob, { notify: false })
+      onProgress?.(++done, scans.length)
+    }
+    this.set({ photosRevision: this.snapshot.photosRevision + 1 })
+  }
+
+  /** Replaces the app's data with a restored copy (from the folder or a backup). */
+  private adoptState(state: PersistedState, opts: { keepFolder: boolean }) {
+    const data: PersistedState = { ...emptyState(), ...state }
+    if (!data.goals.length) data.goals = [defaultGoals(this.today())]
+    data.uploadJobs = data.uploadJobs.map((j) => (j.state.kind === 'uploading' ? { ...j, state: { kind: 'pending' as const } } : j))
+    // A folder chosen on another computer can't be reused here; keep this device's choice.
+    data.settings = {
+      ...data.settings,
+      storage: opts.keepFolder && this.snapshot.folder.kind === 'connected'
+        ? { kind: 'folder', name: this.snapshot.folder.name } : { kind: 'browser' },
+    }
+    this.set({ data, awardQueue: [], showAllRingsClosed: false })
+    this.persist()
+    void this.processUploads()
+  }
+
+  /** Asks the browser not to clear PuffyMeter's data under storage pressure or Safari's 7-day rule. */
+  private async requestPersistence() {
+    try {
+      const persisted = (await navigator.storage?.persisted?.()) || (await navigator.storage?.persist?.()) || false
+      this.set({ persistent: persisted })
+    } catch { /* unsupported */ }
   }
 
   // MARK: Clock & derived
@@ -124,8 +289,22 @@ class AppStore {
     // Interrupted uploads restart from pending.
     data.uploadJobs = data.uploadJobs.map((j) => (j.state.kind === 'uploading' ? { ...j, state: { kind: 'pending' } } : j))
     const googleEnabled = this.snapshot.demo || (await GoogleAuth.enabled())
-    this.set({ data, loaded: true, googleEnabled })
+    this.set({ data, googleEnabled })
+    // Local folder first: if one was chosen, read it before showing anything.
+    if (!this.snapshot.demo && folderSupported()) {
+      const handle = await KeyValue.get<FileSystemDirectoryHandle>(FOLDER_HANDLE_KEY).catch(() => undefined)
+      if (handle) {
+        const permission = await folderPermission(handle)
+        if (permission === 'granted') await this.syncFromFolder(handle)
+        else {
+          this.folderHandle = handle
+          this.set({ folder: { kind: 'needsPermission', name: handle.name } })
+        }
+      }
+    }
+    this.set({ loaded: true })
     if (this.snapshot.demo) await this.seedDemoPhotos()
+    else void this.requestPersistence()
     void this.processUploads()
   }
 
@@ -149,7 +328,7 @@ class AppStore {
 
   /** "Use without an account": scans stay in this browser; Drive can be connected later. */
   useLocally() {
-    this.updateSettings({ profile: { displayName: 'You', provider: 'local' }, drive: { kind: 'skipped' }, onboardingStep: 'permissions' })
+    this.updateSettings({ profile: { displayName: 'You', provider: 'local' }, drive: { kind: 'skipped' }, onboardingStep: 'storageChoice' })
   }
 
   connectDrive(folder: DriveFolderRef) {
@@ -193,7 +372,12 @@ class AppStore {
     else this.updateSettings({ profile: undefined, onboardingStep: 'signIn' })
   }
 
+  /** Erases PuffyMeter from this browser. Files in the local folder / Drive are left untouched. */
   async deleteAllData() {
+    await KeyValue.remove(FOLDER_HANDLE_KEY).catch(() => undefined)
+    this.folderHandle = undefined
+    PhotoStore.setFallback(undefined)
+    this.set({ folder: { kind: 'none' } })
     await PhotoStore.clear()
     try { localStorage.removeItem(STORAGE_KEY) } catch { /* ignore */ }
     const data = emptyState()
@@ -247,6 +431,7 @@ class AppStore {
     const result = Scoring.score(raw, capture.quality, reference)
     const id = crypto.randomUUID()
     await PhotoStore.save(id, capture.blob)
+    const taken = new Set(this.snapshot.data.scans.map((x) => photoFileName(x)))
     const day = this.snapshot.demo ? this.today() : dayKeyOf(capture.capturedAt)
     const capturedAt = this.snapshot.demo ? this.now() : capture.capturedAt
     const firstScan = this.snapshot.data.scans.length === 0
@@ -256,6 +441,7 @@ class AppStore {
       isBaseline: isBaseline || firstScan, notes: '', tags: suggestedTags(h.habits.get(day)),
       syncState: driveFolder(this.snapshot.data.settings.drive) ? 'queued' : 'local',
     }
+    record.fileName = photoFileName(record, taken)
     this.update((d) => {
       const replaced = isBaseline ? [] : d.scans.filter((s) => s.dayKey === day).map((s) => s.id)
       const jobs = d.uploadJobs.filter((j) => !(replaced.includes(j.scanID) && j.state.kind !== 'done'))
@@ -264,6 +450,8 @@ class AppStore {
     })
     this.afterActivityChange()
     void this.processUploads()
+    const dir = this.folderDir()
+    if (dir) void writeScan(dir, record, this.snapshot.data, capture.blob, APP_VERSION).catch(() => undefined)
     return record
   }
 
@@ -279,6 +467,9 @@ class AppStore {
       return { ...d, scans, uploadJobs: jobs }
     })
     void this.processUploads()
+    const dir = this.folderDir()
+    const scan = this.snapshot.data.scans.find((x) => x.id === id)
+    if (dir && scan) void writeScan(dir, scan, this.snapshot.data, undefined, APP_VERSION).catch(() => undefined)
   }
 
   deleteScan(id: string) {
@@ -483,6 +674,9 @@ function historyFor(d: PersistedState): History {
 }
 
 export const store = new AppStore()
+
+// Handy for debugging in the dev server only (stripped from production builds).
+if (import.meta.env.DEV) (window as unknown as { __puffymeter: AppStore }).__puffymeter = store
 
 /** Subscribes a component to the store and returns handy derived values. */
 export function useApp() {
