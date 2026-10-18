@@ -1,12 +1,12 @@
 import { Bell, Camera, Check, ChevronLeft, ChevronRight, FileText, Folder, FolderCheck, FolderLock, FolderPlus, HardDrive, Image, Lock, Search, ShieldCheck } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { fmt } from '../domain/dates'
 import { DriveNaming } from '../domain/export'
-import type { DriveFolderRef } from '../domain/types'
-import type { DriveFolder } from '../services/drive'
 import { cameraPermission, cameraSupported, preloadFaceModel, requestCamera } from '../services/faceCamera'
-import { AuthError, GoogleAuth } from '../services/googleAuth'
+import { FAILURE_MESSAGE, type DriveFolderRef } from '../domain/types'
+import { DriveError, type DriveFolder } from '../services/drive'
+import { AuthError, authErrorMessage, GoogleAuth } from '../services/googleAuth'
 import { drawSampleFace } from '../services/sampleFace'
 import { store, useApp } from '../store/appStore'
 import { Card, Delta, Disclaimer, Screen, Sheet, Toggle } from '../ui/components'
@@ -95,23 +95,23 @@ function WelcomeScoreArt() {
 
 export function SignIn() {
   const navigate = useNavigate()
-  const [error, setError] = useState<string>()
+  const { snap } = useApp()
+  const [params] = useSearchParams()
   const [busy, setBusy] = useState(false)
-  const google = async () => {
-    setBusy(true)
-    setError(undefined)
-    try {
-      const profile = await GoogleAuth.signIn()
-      store.signedIn(profile)
+  const error = authErrorMessage(params.get('error'))
+  const demo = snap.demo
+  const google = () => {
+    if (demo) {
+      store.signedIn({ displayName: 'Alex Morgan', email: 'alex.morgan@gmail.com', provider: 'google' })
       navigate('/drive')
-    } catch (e) {
-      setError(e instanceof AuthError ? e.userMessage : 'Sign-in didn’t complete. Please try again.')
-    } finally {
-      setBusy(false)
+      return
     }
+    setBusy(true)
+    // Full-page redirect to Google (works in Home Screen apps, unlike popups).
+    GoogleAuth.signIn('/auth/complete?next=/drive')
   }
   const local = () => { store.useLocally(); navigate('/permissions') }
-  const demo = store.getSnapshot().demo
+  const googleEnabled = snap.googleEnabled
   return (
     <main className="screen no-tabs center" style={{ alignItems: 'center', paddingTop: 'calc(env(safe-area-inset-top) + 48px)' }}>
       <ActivityRings progress={LOGO_RINGS} size="card" />
@@ -120,14 +120,14 @@ export function SignIn() {
       <p className="sub" style={{ fontSize: 17, margin: 0 }}>Sign in to save your progress and connect your private photo folder.</p>
       {error && <p className="foot accent" role="alert">{error}</p>}
       <div className="stack lg" style={{ width: '100%', marginTop: 12 }}>
-        {(GoogleAuth.configured || demo) && (
-          <button className="btn primary" disabled={busy} onClick={demo ? () => { store.signedIn({ displayName: 'Alex Morgan', email: 'alex.morgan@gmail.com', provider: 'google' }); navigate('/drive') } : google}>
+        {googleEnabled && (
+          <button className="btn primary" disabled={busy} onClick={google}>
             <span style={{ width: 22, height: 22, borderRadius: 11, background: '#fff', color: '#4285F4', display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: 14 }}>G</span>
-            {busy ? 'Signing in…' : 'Continue with Google'}
+            {busy ? 'Opening Google…' : 'Continue with Google'}
           </button>
         )}
-        <button className={`btn ${GoogleAuth.configured || demo ? 'secondary' : 'primary'}`} onClick={local}>Use without an account</button>
-        {!GoogleAuth.configured && !demo && <p className="foot">Scans stay in this browser. You can connect Google Drive later in Profile once it's set up.</p>}
+        <button className={`btn ${googleEnabled ? 'secondary' : 'primary'}`} onClick={local}>Use without an account</button>
+        {!googleEnabled && <p className="foot">Scans stay in this browser. You can connect Google Drive later in Profile once it's set up.</p>}
       </div>
       <Card style={{ textAlign: 'left', width: '100%' }}>
         <div className="row"><ShieldCheck size={22} color="var(--scan)" /><span className="headline">Your privacy comes first</span></div>
@@ -142,20 +142,41 @@ export function SignIn() {
 
 export function ConnectDrive() {
   const navigate = useNavigate()
-  const { settings } = useApp()
-  const [error, setError] = useState<string>()
+  const { settings, snap } = useApp()
+  const [params] = useSearchParams()
+  const [error, setError] = useState<string | undefined>(authErrorMessage(params.get('error')))
+  const [busy, setBusy] = useState(false)
   const [confirmSkip, setConfirmSkip] = useState(false)
-  const demo = store.getSnapshot().demo
   const connect = async () => {
     setError(undefined)
+    setBusy(true)
     try {
-      if (!demo) await GoogleAuth.requestDriveAccess(settings.profile?.email)
-      store.setOnboardingStep('driveFolderPicker')
-      navigate('/drive/folders')
+      if (!snap.demo) {
+        const session = await GoogleAuth.session()
+        // Not signed in on this device, or the Drive box was unticked: ask Google again.
+        if (!session || !session.drive) {
+          GoogleAuth.signIn('/auth/complete?next=/drive/connect', settings.profile?.email)
+          return
+        }
+      }
+      await store.connectDefaultFolder()
+      store.setOnboardingStep('driveConnected')
+      navigate('/drive/connected')
     } catch (e) {
-      setError(e instanceof AuthError ? e.userMessage : "Couldn't connect to Google Drive. Please try again.")
+      // Google session expired or was revoked: go back through Google sign-in.
+      if (e instanceof DriveError && e.failure === 'authExpired' && !snap.demo) {
+        GoogleAuth.signIn('/auth/complete?next=/drive/connect', settings.profile?.email)
+        return
+      }
+      setError(e instanceof AuthError ? e.userMessage : e instanceof DriveError ? FAILURE_MESSAGE[e.failure] : "Couldn't connect to Google Drive. Please try again.")
+    } finally {
+      setBusy(false)
     }
   }
+  // Coming back from Google's consent screen: finish connecting automatically.
+  useEffect(() => {
+    if (params.get('connect') === '1') void connect()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const rows: [React.ReactNode, string, string][] = [
     [<Image size={20} color="var(--accent)" />, 'Daily scan photos', 'JPG'],
     [<FileText size={20} color="var(--accent)" />, 'Scores and notes', 'JSON'],
@@ -173,7 +194,7 @@ export function ConnectDrive() {
       </div>
       <Disclaimer>You can disconnect or change folders anytime in Profile. Deleting PuffyMeter won't delete your Drive photos.</Disclaimer>
       {error && <p className="foot accent" role="alert">{error}</p>}
-      <button className="btn primary" onClick={connect}>Choose Drive folder</button>
+      <button className="btn primary" disabled={busy} onClick={connect}>{busy ? 'Connecting…' : 'Choose Drive folder'}</button>
       <button className="link-btn foot" style={{ alignSelf: 'center' }} onClick={() => setConfirmSkip(true)}>Not now</button>
       {confirmSkip && (
         <Sheet title="Continue without Drive?" onClose={() => setConfirmSkip(false)}>
@@ -324,7 +345,7 @@ export function DriveConnected() {
         <div className="foot good">Connected · Access to this folder only</div>
       </Card>
       <button className="btn primary" onClick={() => { store.setOnboardingStep('permissions'); navigate('/permissions') }}>Continue</button>
-      <button className="btn secondary" onClick={() => navigate('/drive/folders')}>Change folder</button>
+      <button className="btn secondary" onClick={() => { store.setOnboardingStep('driveFolderPicker'); navigate('/drive/folders') }}>Change folder</button>
     </Screen>
   )
 }
@@ -370,5 +391,44 @@ export function Permissions() {
       <button className="btn primary" disabled={camera !== 'granted'} onClick={() => { store.setOnboardingStep('baselineScan'); navigate('/baseline') }}>Start my first scan</button>
       <Disclaimer center>You can continue without reminders. Reminder time: {fmt.reminder(settings.reminderTime)}.</Disclaimer>
     </Screen>
+  )
+}
+
+/**
+ * Google redirects here after consent (via /api/auth/callback/google). Reads the new server
+ * session, updates the app, and continues to `next`.
+ */
+export function AuthComplete() {
+  const navigate = useNavigate()
+  const [params] = useSearchParams()
+  useEffect(() => {
+    const next = params.get('next') ?? '/'
+    const error = params.get('error')
+    const onboarding = store.getSnapshot().data.settings.onboardingStep !== 'complete'
+    void (async () => {
+      if (error) {
+        const target = onboarding
+          ? (next === '/drive' ? '/signin' : '/drive')
+          : next.split('?')[0]
+        navigate(`${target}?error=${encodeURIComponent(error)}`, { replace: true })
+        return
+      }
+      const session = await GoogleAuth.session()
+      if (!session) {
+        navigate(`${onboarding ? '/signin' : '/profile/drive'}?error=exchange_failed`, { replace: true })
+        return
+      }
+      store.googleSignedIn(session)
+      // /drive/connect = return to Connect Drive and finish connecting the folder.
+      navigate(next === '/drive/connect' ? '/drive?connect=1' : next, { replace: true })
+    })()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  return (
+    <div style={{ minHeight: '100dvh', display: 'grid', placeItems: 'center' }} aria-busy="true">
+      <div className="stack center" style={{ alignItems: 'center' }}>
+        <ActivityRings progress={LOGO_RINGS} size="compact" />
+        <span className="sub">Signing you in…</span>
+      </div>
+    </div>
   )
 }

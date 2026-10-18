@@ -1,6 +1,6 @@
 // PuffyMeter service worker: caches the app shell so it opens offline. Scan data lives in
 // IndexedDB/localStorage, never in this cache. Google and model requests always go to the network.
-const CACHE = 'puffymeter-v1'
+const CACHE = 'puffymeter-v2'
 const SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png']
 
 self.addEventListener('install', (event) => {
@@ -13,7 +13,8 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url)
-  if (event.request.method !== 'GET' || url.origin !== location.origin) return
+  // Never touch sign-in or Drive proxy requests.
+  if (event.request.method !== 'GET' || url.origin !== location.origin || url.pathname.startsWith('/api/')) return
   // App navigations: network first, fall back to the cached shell when offline.
   if (event.request.mode === 'navigate') {
     event.respondWith(fetch(event.request).catch(() => caches.match('/index.html')))

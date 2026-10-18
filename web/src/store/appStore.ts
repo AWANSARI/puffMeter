@@ -14,7 +14,7 @@ import {
 } from '../domain/types'
 import { createMockDrive, DriveError, GoogleDrive, type DriveApi } from '../services/drive'
 import type { CapturedFace } from '../services/faceCamera'
-import { GoogleAuth } from '../services/googleAuth'
+import { GoogleAuth, type GoogleSession } from '../services/googleAuth'
 import { PhotoStore, resizeJPEG } from '../services/photoStore'
 import { sampleFaceJPEG } from '../services/sampleFace'
 
@@ -37,6 +37,8 @@ export interface AppSnapshot {
   showAllRingsClosed: boolean
   photosRevision: number
   demo: boolean
+  /** Google sign-in is configured on this deploy (Netlify env vars present). */
+  googleEnabled: boolean
 }
 
 const isDemo = () => new URLSearchParams(location.search).has('demo')
@@ -52,7 +54,7 @@ class AppStore {
   constructor() {
     const demo = isDemo()
     this.drive = demo ? createMockDrive() : GoogleDrive
-    this.snapshot = { data: emptyState(), loaded: false, online: navigator.onLine, awardQueue: [], showAllRingsClosed: false, photosRevision: 0, demo }
+    this.snapshot = { data: emptyState(), loaded: false, online: navigator.onLine, awardQueue: [], showAllRingsClosed: false, photosRevision: 0, demo, googleEnabled: demo }
     window.addEventListener('online', () => { this.set({ online: true }); void this.processUploads() })
     window.addEventListener('offline', () => this.set({ online: false }))
     PhotoStore.onChange(() => this.set({ photosRevision: this.snapshot.photosRevision + 1 }))
@@ -121,7 +123,8 @@ class AppStore {
     if (!data.goals.length) data.goals = [defaultGoals(this.today())]
     // Interrupted uploads restart from pending.
     data.uploadJobs = data.uploadJobs.map((j) => (j.state.kind === 'uploading' ? { ...j, state: { kind: 'pending' } } : j))
-    this.set({ data, loaded: true })
+    const googleEnabled = this.snapshot.demo || (await GoogleAuth.enabled())
+    this.set({ data, loaded: true, googleEnabled })
     if (this.snapshot.demo) await this.seedDemoPhotos()
     void this.processUploads()
   }
@@ -166,11 +169,22 @@ class AppStore {
     this.update((d) => ({ ...d, uploadJobs: [], settings: { ...d.settings, drive: { kind: 'notConnected' } } }))
   }
 
-  async reconnectDrive() {
-    await GoogleAuth.requestDriveAccess(this.snapshot.data.settings.profile?.email)
-    const folder = driveFolder(this.snapshot.data.settings.drive)
-    if (folder) this.updateSettings({ drive: { kind: 'connected', folder } })
-    this.retryUploads()
+  /** Called after Google redirects back (/auth/complete) with a valid server session. */
+  googleSignedIn(session: GoogleSession) {
+    const s = this.snapshot.data.settings
+    const patch: Partial<Settings> = { profile: GoogleAuth.profile(session) }
+    if (s.onboardingStep === 'welcome' || s.onboardingStep === 'signIn') patch.onboardingStep = 'driveLimitedAccess'
+    if (s.drive.kind === 'needsReconnect' && session.drive) patch.drive = { kind: 'connected', folder: s.drive.folder }
+    this.updateSettings(patch)
+    if (patch.drive) this.retryUploads()
+  }
+
+  /** Finds or creates the default Drive folder and connects it (used by onboarding and Profile). */
+  async connectDefaultFolder(): Promise<DriveFolderRef> {
+    const f = await this.drive.ensureAppFolder()
+    const folder = { id: f.id, name: f.name, path: `My Drive / ${f.name}` }
+    this.connectDrive(folder)
+    return folder
   }
 
   async signOut(deleteLocalData: boolean) {

@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { BrowserRouter, NavLink, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import type { OnboardingStep } from './domain/types'
 import { AllRingsClosed, AwardDetail, AwardUnlockSheet, Awards, ChallengesScreen, Goals } from './screens/Awards'
-import { ConnectDrive, DriveConnected, OnboardingFolderPicker, Permissions, SignIn, Welcome } from './screens/Onboarding'
+import { AuthComplete, ConnectDrive, DriveConnected, OnboardingFolderPicker, Permissions, SignIn, Welcome } from './screens/Onboarding'
 import { DriveSettings, ExportData, Privacy, Profile } from './screens/Profile'
 import { ScanFlow, ScanTab } from './screens/Scan'
 import { Summary } from './screens/Summary'
@@ -71,6 +71,8 @@ function Shell() {
   }
 
   const step = settings.onboardingStep
+  // Google returns here after sign-in; it works at any stage of onboarding.
+  if (pathname === '/auth/complete') return <AuthComplete />
   if (step !== 'complete' && !ONBOARDING_PATHS.has(pathname)) return <Navigate to={STEP_ROUTE[step]} replace />
   if (step === 'complete' && ONBOARDING_PATHS.has(pathname)) return <Navigate to="/" replace />
 

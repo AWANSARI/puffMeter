@@ -6,7 +6,7 @@ PuffyMeter as an installable web app (PWA), built with Vite, React and TypeScrip
 |---|---|---|
 | Face analysis | ARKit / Vision, on device | MediaPipe Face Landmarker, in the browser |
 | Photo storage | App sandbox and your Drive folder | This browser (IndexedDB) and your Drive folder |
-| Sign-in | Google, Sign in with Apple | Google, or no account |
+| Sign-in | Google, Sign in with Apple | Google (server-side, Netlify Functions), or no account |
 | Apple Health, Face ID lock, widgets | Yes | Not available on the web |
 | Reminders | Scheduled notifications | Shown when the app is opened after the reminder time |
 
@@ -22,7 +22,7 @@ The dev server runs at <http://localhost:5173>.
 
 - **Demo mode:** open `/?demo` for the mockup data (Oct 8, 2026) and a simulated camera. Nothing is saved.
 - **Production preview:** `npm run build && npm run preview` serves the site at <http://localhost:4173> with the same security headers Netlify uses.
-- **Tests:** `npm test` runs the domain tests, which use the same numbers as the iOS PuffyKit tests.
+- **Tests:** `npm test` runs the domain tests, which use the same numbers as the iOS PuffyKit tests, and the sign-in and Drive proxy function tests.
 
 The camera works on `localhost` and on HTTPS sites only. Netlify sites are HTTPS by default.
 
@@ -42,25 +42,41 @@ The camera works on `localhost` and on HTTPS sites only. Netlify sites are HTTPS
 
 `_redirects` (single-page app routing) and `_headers` (security headers and camera permission) are in `public/`, so both options use them.
 
-## Turn on Google sign-in and Drive (optional)
+## Turn on Google sign-in and Drive
 
-Without this, the site still works fully with **Use without an account**.
+Sign-in follows the same pattern as [Atomic Tracker](https://github.com/AWANSARI/atomicTracker):
+- **Flow:** a full-page redirect to Google using the authorization-code flow with the client secret, `access_type=offline` and PKCE.
+- **Session:** the refresh token is stored in an encrypted HttpOnly cookie, with no database. Sessions last about 180 days instead of one hour.
+- **Drive calls:** they go through a Netlify Function proxy (`/api/google/*`) that adds the token on the server. Google tokens never reach the browser.
+- **Consent:** one consent screen covers sign-in and `drive.file`. PuffyMeter then finds or creates its own **PuffyMeter Daily** folder.
 
-1. In Google Cloud Console, create a project and **enable the Google Drive API**.
-2. Configure the **OAuth consent screen**:
-   - Scopes: `openid`, `email`, `profile` and `.../auth/drive.file`. `drive.file` is non-sensitive, so no security review is needed.
-   - While the app is in Testing, add yourself as a test user.
-3. Create an **OAuth client ID** of type **Web application**. Under **Authorized JavaScript origins**, add your Netlify URL (for example `https://puffymeter.netlify.app`) and `http://localhost:4173`.
-4. Give the site the client ID:
-   - **Git deploys:** in Netlify, go to Site configuration > Environment variables, add `VITE_GOOGLE_CLIENT_ID`, then trigger a redeploy.
-   - **Drag-and-drop deploys:** put `VITE_GOOGLE_CLIENT_ID=...` in `web/.env.local` (git-ignored) before running `npm run build`.
+The server code is in `netlify/functions/auth.ts` (`/api/auth/*`) and `netlify/functions/google.ts` (`/api/google/*`), with shared helpers in `netlify/lib/session.ts`.
 
-Google access tokens are kept only in the browser tab's session storage and last about an hour. When one expires, PuffyMeter shows **Reconnect**.
+Without this setup the site still works fully with **Use without an account**.
+
+1. **Google Cloud Console** (you can reuse the Atomic Tracker project):
+   - APIs & Services > Library: **enable the Google Drive API**.
+   - OAuth consent screen: scopes `openid`, `email`, `profile` and `.../auth/drive.file`. While the app is in Testing, add your Google account as a **test user**.
+   - Credentials > Create credentials > **OAuth client ID** > **Web application**. Under **Authorized redirect URIs**, add:
+     - `https://<your-site>.netlify.app/api/auth/callback/google`
+     - `http://localhost:4173/api/auth/callback/google` (optional, for local testing)
+
+   You can add these redirect URIs to Atomic Tracker's existing client instead. Google's consent screen would then show Atomic Tracker's app name.
+2. **Netlify > Site configuration > Environment variables**, add:
+
+   | Key | Value |
+   |---|---|
+   | `AUTH_GOOGLE_ID` | the client ID |
+   | `AUTH_GOOGLE_SECRET` | the client secret |
+   | `AUTH_SECRET` | output of `openssl rand -base64 32` |
+3. **Redeploy:** Deploys > Trigger deploy. Functions read these at runtime, so no code change is needed.
+
+**Local testing:** put the same three values in `web/.env.local`, then run `npm run build && npm run preview` and open <http://localhost:4173>. The functions run inside Vite's server.
 
 ## Privacy
 
 - Camera frames are analyzed in the browser and never uploaded.
 - The face model runtime is served from the site itself. The model weights load from Google's MediaPipe storage.
 - Photos and scores stay in this browser and, if you connect it, in the single Drive folder you choose.
-- There are no analytics, ads or servers.
+- There are no analytics, ads or databases. Sign-in runs in stateless Netlify Functions: the Google refresh token lives only in an encrypted cookie in your browser, and Drive requests are passed straight through to Google.
 - The privacy page is `public/privacy.html`.

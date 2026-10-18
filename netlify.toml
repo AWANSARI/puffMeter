@@ -6,3 +6,9 @@
 
 [build.environment]
   NODE_VERSION = "22"
+
+# Server-side Google sign-in + Drive proxy (same pattern as Atomic Tracker's Auth.js routes).
+# Needs AUTH_GOOGLE_ID, AUTH_GOOGLE_SECRET and AUTH_SECRET in Site configuration > Environment variables.
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"

@@ -25,7 +25,7 @@
       <li>Face analysis runs entirely in your browser. Camera frames are never sent anywhere.</li>
       <li>Photos and scores are stored on your device (browser storage).</li>
       <li>If you connect Google Drive, PuffyMeter uploads each day's photo (JPG) and score file (JSON) to the single folder you choose, using the <code>drive.file</code> permission. It can't see the rest of your Drive.</li>
-      <li>There are no PuffyMeter servers, ads, analytics or trackers.</li>
+      <li>There's no PuffyMeter database, and no ads, analytics or trackers. Google sign-in runs in small stateless functions: your Google refresh token is kept only in an encrypted cookie in your own browser, and Drive requests are passed straight through to Google.</li>
     </ul>
     <h2>Google user data</h2>
     <p>PuffyMeter's use of information received from Google APIs adheres to the Google API Services User Data Policy, including the Limited Use requirements. Your name and email are shown in the app only; they're never sold or shared.</p>

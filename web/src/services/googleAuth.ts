@@ -1,126 +1,73 @@
-// Google sign-in for the web with Google Identity Services (token model, no backend).
-// Profile scopes at sign-in; the non-sensitive `drive.file` scope is requested incrementally on
-// the Connect Google Drive screen. Tokens live in memory and sessionStorage only (≈1 hour).
+// Google sign-in, Atomic Tracker style: a full-page redirect to Google handled by our Netlify
+// functions (/api/auth/*). The server keeps the refresh token in an encrypted HttpOnly cookie,
+// so sessions last for months and no Google token is ever visible to page JavaScript.
 
 import type { UserProfile } from '../domain/types'
 
-const CLIENT_ID = (import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined)?.trim() || undefined
-export const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file'
-const PROFILE_SCOPES = 'openid email profile'
-const TOKEN_KEY = 'puffymeter.googleToken'
-
-interface TokenResponse { access_token?: string; expires_in?: number; scope?: string; error?: string; error_description?: string }
-interface TokenClient { requestAccessToken(o?: { prompt?: string; scope?: string; include_granted_scopes?: boolean; hint?: string }): void }
-interface GoogleGlobal {
-  accounts: { oauth2: {
-    initTokenClient(c: { client_id: string; scope: string; callback: (r: TokenResponse) => void; error_callback?: (e: { type: string }) => void }): TokenClient
-    revoke(token: string, done?: () => void): void
-  } }
+export interface GoogleSession {
+  user: { name?: string; email?: string; picture?: string }
+  /** Whether the user granted the drive.file permission (Google lets people untick it). */
+  drive: boolean
+  canRefresh: boolean
 }
-declare global { interface Window { google?: GoogleGlobal } }
 
 export class AuthError extends Error {
   constructor(public kind: 'cancelled' | 'network' | 'notConfigured' | 'scopeDenied' | 'notSignedIn' | 'other', message?: string) {
     super(message ?? kind)
   }
   get userMessage(): string | undefined {
-    switch (this.kind) {
-      case 'cancelled': return undefined
-      case 'network': return "Couldn't reach Google. Check your connection and try again."
-      case 'notConfigured': return "Google sign-in isn't set up on this site yet. Choose “Use without an account” for now."
-      case 'scopeDenied': return 'PuffyMeter needs permission to save to one Drive folder.'
-      case 'notSignedIn': return 'Please sign in to Google again.'
-      default: return this.message
-    }
+    return authErrorMessage(this.kind)
   }
 }
 
-let scriptPromise: Promise<GoogleGlobal> | undefined
-function loadGIS(): Promise<GoogleGlobal> {
-  scriptPromise ??= new Promise((resolve, reject) => {
-    if (window.google?.accounts) return resolve(window.google)
-    const s = document.createElement('script')
-    s.src = 'https://accounts.google.com/gsi/client'
-    s.async = true
-    s.onload = () => (window.google ? resolve(window.google) : reject(new AuthError('network')))
-    s.onerror = () => { scriptPromise = undefined; reject(new AuthError('network')) }
-    document.head.appendChild(s)
-  })
-  return scriptPromise
+/** User-facing text for errors from the OAuth callback (?error=…) and the client. */
+export function authErrorMessage(code: string | null | undefined): string | undefined {
+  switch (code) {
+    case null: case undefined: case 'cancelled': return undefined
+    case 'network': return "Couldn't reach Google. Check your connection and try again."
+    case 'notConfigured': case 'not_configured': return "Google sign-in isn't set up on this site yet. Choose “Use without an account” for now."
+    case 'scopeDenied': return 'PuffyMeter needs permission to save to one Drive folder. Tick the Google Drive box when you sign in.'
+    case 'notSignedIn': return 'Please sign in to Google again.'
+    case 'state_mismatch': return 'Sign-in expired. Please try again.'
+    default: return "Google sign-in didn't complete. Please try again."
+  }
 }
 
-interface StoredToken { token: string; expiresAt: number; scope: string; email?: string }
-
-function readToken(): StoredToken | undefined {
-  try {
-    const t = JSON.parse(sessionStorage.getItem(TOKEN_KEY) ?? 'null') as StoredToken | null
-    return t ?? undefined
-  } catch { return undefined }
-}
-
-function writeToken(t: StoredToken | undefined) {
-  try {
-    if (t) sessionStorage.setItem(TOKEN_KEY, JSON.stringify(t))
-    else sessionStorage.removeItem(TOKEN_KEY)
-  } catch { /* private mode */ }
-}
-
-async function requestToken(scope: string, prompt: string, hint?: string): Promise<StoredToken> {
-  if (!CLIENT_ID) throw new AuthError('notConfigured')
-  const google = await loadGIS()
-  return new Promise((resolve, reject) => {
-    const client = google.accounts.oauth2.initTokenClient({
-      client_id: CLIENT_ID,
-      scope,
-      callback: (r) => {
-        if (r.error || !r.access_token) {
-          reject(new AuthError(r.error === 'access_denied' ? 'cancelled' : 'other', r.error_description ?? r.error))
-          return
-        }
-        const stored = { token: r.access_token, expiresAt: Date.now() + (r.expires_in ?? 3600) * 1000 - 60_000, scope: r.scope ?? scope, email: hint }
-        writeToken(stored)
-        resolve(stored)
-      },
-      error_callback: (e) => reject(new AuthError(e.type === 'popup_closed' ? 'cancelled' : 'other', 'Sign-in window was blocked or closed.')),
-    })
-    client.requestAccessToken({ prompt, scope, include_granted_scopes: true, hint })
-  })
-}
+let configPromise: Promise<boolean> | undefined
 
 export const GoogleAuth = {
-  configured: !!CLIENT_ID,
-
-  /** Must be called from a click handler (opens Google's popup). */
-  async signIn(): Promise<UserProfile> {
-    const t = await requestToken(PROFILE_SCOPES, 'select_account')
-    const info = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: `Bearer ${t.token}` } })
-      .then((r) => r.json() as Promise<{ name?: string; email?: string }>)
-      .catch(() => { throw new AuthError('network') })
-    writeToken({ ...t, email: info.email })
-    return { displayName: info.name ?? 'PuffyMeter user', email: info.email, provider: 'google' }
+  /** True when this deploy has AUTH_GOOGLE_ID / AUTH_GOOGLE_SECRET / AUTH_SECRET set. */
+  enabled(): Promise<boolean> {
+    configPromise ??= fetch('/api/auth/config', { cache: 'no-store' })
+      .then((r) => (r.ok ? (r.json() as Promise<{ enabled: boolean }>) : { enabled: false }))
+      .then((c) => !!c.enabled)
+      .catch(() => false)
+    return configPromise
   },
 
-  /** Adds `drive.file`. Must be called from a click handler. */
-  async requestDriveAccess(email?: string): Promise<void> {
-    const t = await requestToken(`${PROFILE_SCOPES} ${DRIVE_SCOPE}`, '', email ?? readToken()?.email)
-    if (!t.scope.split(' ').includes(DRIVE_SCOPE)) throw new AuthError('scopeDenied')
+  /** Leaves the page for Google's consent screen; Google returns to `returnTo` (a path in this app). */
+  signIn(returnTo = '/auth/complete', loginHint?: string) {
+    const params = new URLSearchParams({ returnTo })
+    if (loginHint) params.set('login_hint', loginHint)
+    location.assign(`/api/auth/signin?${params}`)
   },
 
-  hasDriveToken(): boolean {
-    const t = readToken()
-    return !!t && t.expiresAt > Date.now() && t.scope.split(' ').includes(DRIVE_SCOPE)
-  },
-
-  /** A valid Drive token, or throws `notSignedIn` (the UI then offers Reconnect, a user gesture). */
-  async driveToken(): Promise<string> {
-    const t = readToken()
-    if (t && t.expiresAt > Date.now() && t.scope.split(' ').includes(DRIVE_SCOPE)) return t.token
-    throw new AuthError('notSignedIn')
+  async session(): Promise<GoogleSession | null> {
+    try {
+      const res = await fetch('/api/auth/session', { cache: 'no-store', credentials: 'same-origin' })
+      if (!res.ok) return null
+      const body = (await res.json()) as GoogleSession & { user: GoogleSession['user'] | null }
+      return body.user ? body : null
+    } catch {
+      return null
+    }
   },
 
   async signOut(): Promise<void> {
-    const t = readToken()
-    writeToken(undefined)
-    if (t && window.google) window.google.accounts.oauth2.revoke(t.token)
+    await fetch('/api/auth/signout', { method: 'POST', credentials: 'same-origin' }).catch(() => undefined)
+  },
+
+  profile(s: GoogleSession): UserProfile {
+    return { displayName: s.user.name ?? 'PuffyMeter user', email: s.user.email, provider: 'google' }
   },
 }

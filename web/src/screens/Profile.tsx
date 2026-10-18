@@ -1,11 +1,12 @@
 import { Bell, ChevronRight, Clock, Cpu, Download, EyeOff, Folder, Hand, HardDrive, LogOut, Moon, ShieldCheck, Sunrise, Table, Target, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { fmt } from '../domain/dates'
 import { History } from '../domain/engine'
 import { toCSV } from '../domain/export'
-import { driveFolder, type Settings } from '../domain/types'
-import { AuthError, GoogleAuth } from '../services/googleAuth'
+import { driveFolder, FAILURE_MESSAGE, type Settings } from '../domain/types'
+import { DriveError } from '../services/drive'
+import { AuthError, authErrorMessage, GoogleAuth } from '../services/googleAuth'
 import { store, useApp } from '../store/appStore'
 import { Alert, Card, Screen, Sheet, Toast, Toggle } from '../ui/components'
 import { FolderPicker } from './Onboarding'
@@ -107,29 +108,52 @@ export function Profile() {
 }
 
 export function DriveSettings() {
-  const { settings, folder } = useApp()
+  const { settings, folder, snap } = useApp()
+  const [params, setParams] = useSearchParams()
   const [count, setCount] = useState<number>()
   const [choosing, setChoosing] = useState(false)
   const [disconnect, setDisconnect] = useState(false)
-  const [toast, setToast] = useState<string>()
+  const [toast, setToast] = useState<string | undefined>(authErrorMessage(params.get('error')))
   const [busy, setBusy] = useState(false)
-  const demo = store.getSnapshot().demo
+  const demo = snap.demo
   useEffect(() => {
-    if (folder && (demo || GoogleAuth.hasDriveToken())) store.drive.fileCount(folder.id).then(setCount).catch(() => undefined)
-  }, [folder?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+    if (folder && settings.drive.kind === 'connected') store.drive.fileCount(folder.id).then(setCount).catch(() => undefined)
+  }, [folder?.id, settings.drive.kind]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  /** Signs in with Google (redirect) when needed, then connects the default "PuffyMeter Daily" folder. */
   const connect = async () => {
+    if (!snap.googleEnabled) { setToast(authErrorMessage('notConfigured')); return }
+    setBusy(true)
     try {
       if (!demo) {
-        if (!GoogleAuth.configured) throw new AuthError('notConfigured')
-        if (settings.profile?.provider !== 'google') store.setSettings({ profile: await GoogleAuth.signIn() })
-        await GoogleAuth.requestDriveAccess(settings.profile?.email)
+        const session = await GoogleAuth.session()
+        if (!session || !session.drive) {
+          GoogleAuth.signIn('/auth/complete?next=/profile/drive?connect=1', settings.profile?.email)
+          return
+        }
+        if (settings.profile?.provider !== 'google') store.setSettings({ profile: GoogleAuth.profile(session) })
       }
-      setChoosing(true)
+      await store.connectDefaultFolder()
+      setToast('Google Drive connected')
     } catch (e) {
-      setToast(e instanceof AuthError ? e.userMessage ?? 'Cancelled' : "Couldn't connect to Google Drive.")
+      // Google session expired or was revoked: go back through Google sign-in.
+      if (e instanceof DriveError && e.failure === 'authExpired' && !snap.demo) {
+        GoogleAuth.signIn('/auth/complete?next=/profile/drive?connect=1', settings.profile?.email)
+        return
+      }
+      setToast(e instanceof AuthError ? e.userMessage : e instanceof DriveError ? FAILURE_MESSAGE[e.failure] : "Couldn't connect to Google Drive. Please try again.")
+    } finally {
+      setBusy(false)
     }
   }
+  // Back from Google's consent screen with ?connect=1: finish connecting.
+  useEffect(() => {
+    if (params.get('connect') === '1') {
+      setParams({}, { replace: true })
+      void connect()
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const reconnect = () => GoogleAuth.signIn('/auth/complete?next=/profile/drive', settings.profile?.email)
 
   if (choosing) {
     return <FolderPicker back="/profile/drive" onChoose={(f) => { store.connectDrive(f); setChoosing(false); setToast('Google Drive connected') }} />
@@ -148,14 +172,12 @@ export function DriveSettings() {
         <Card><p className="sub" style={{ margin: 0 }}>Scans are kept on this device only. Connect Google Drive to back them up to a folder you choose.</p></Card>
       )}
       {settings.drive.kind === 'needsReconnect' && (
-        <button className="btn primary" onClick={async () => {
-          try { await store.reconnectDrive(); setToast('Reconnected') } catch (e) { setToast(e instanceof AuthError ? e.userMessage ?? 'Cancelled' : "Couldn't reconnect.") }
-        }}>Reconnect Google Drive</button>
+        <button className="btn primary" onClick={reconnect}>Reconnect Google Drive</button>
       )}
       {folder ? (
         <div className="list">
           <Row icon={<Folder size={20} />} label="Sync now" onClick={() => { store.retryUploads(); setToast('Syncing…') }} />
-          <Row icon={<HardDrive size={20} />} label="Change folder" onClick={connect} />
+          <Row icon={<HardDrive size={20} />} label="Change folder" onClick={() => setChoosing(true)} />
           <Row icon={<Download size={20} />} label={busy ? 'Restoring…' : 'Restore history from Drive'} onClick={async () => {
             setBusy(true)
             try {
@@ -165,7 +187,7 @@ export function DriveSettings() {
           }} />
         </div>
       ) : (
-        <button className="btn primary" onClick={connect}>Connect Google Drive</button>
+        <button className="btn primary" disabled={busy} onClick={connect}>{busy ? 'Connecting…' : 'Connect Google Drive'}</button>
       )}
       <div className="list-header">Upload quality</div>
       <div className="list">
@@ -177,7 +199,7 @@ export function DriveSettings() {
         ))}
       </div>
       {folder && <button className="btn danger" onClick={() => setDisconnect(true)}>Disconnect Google Drive</button>}
-      {!GoogleAuth.configured && !demo && <p className="foot">Google Drive isn't set up on this site yet (the site owner needs to add a Google OAuth client ID).</p>}
+      {!snap.googleEnabled && <p className="foot">Google Drive isn't set up on this site yet. The site owner needs to add the Google OAuth settings in Netlify.</p>}
       {disconnect && (
         <Alert title="Disconnect Google Drive?" message="Your photos stay in Google Drive. New scans will be kept on this device until you reconnect."
           buttons={[{ label: 'Cancel', onClick: () => setDisconnect(false) }, { label: 'Disconnect', destructive: true, onClick: () => { store.disconnectDrive(); setDisconnect(false) } }]} />
@@ -221,7 +243,7 @@ export function Privacy() {
       <div className="list">
         <Row icon={<Cpu size={20} />} label="Analysis runs in your browser" />
         <Row icon={<Folder size={20} />} label="Photos go only to your chosen Drive folder" />
-        <Row icon={<ShieldCheck size={20} />} label="No ads, no trackers, no PuffyMeter servers" />
+        <Row icon={<ShieldCheck size={20} />} label="No ads, no trackers, no PuffyMeter database" />
         <Row icon={<EyeOff size={20} />} label="Photos are stored on this device, not in the cloud" />
       </div>
       <p className="list-footer">Camera access is managed in your browser's site settings. <a href="/privacy.html">Privacy Policy</a></p>

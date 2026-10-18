@@ -1,9 +1,9 @@
 // Google Drive REST v3 with the non-sensitive `drive.file` scope: PuffyMeter only sees files and
-// folders it created (see docs/adr/001-drive-scope.md). Plus a mock used by demo mode.
+// folders it created (see docs/adr/001-drive-scope.md). Requests go through our /api/google proxy
+// (a Netlify function), which adds the user's token server-side. Plus a mock used by demo mode.
 
 import { DriveNaming } from '../domain/export'
 import type { UploadFailure } from '../domain/types'
-import { GoogleAuth } from './googleAuth'
 
 export interface DriveFolder { id: string; name: string }
 
@@ -12,6 +12,8 @@ export class DriveError extends Error {
 }
 
 export interface DriveApi {
+  /** Finds or creates the default "PuffyMeter Daily" folder at the My Drive root. */
+  ensureAppFolder(): Promise<DriveFolder>
   listFolders(parentID?: string, query?: string): Promise<DriveFolder[]>
   createFolder(name: string, parentID?: string): Promise<DriveFolder>
   upload(data: Blob, name: string, parentID: string, appProperties: Record<string, string>, onProgress: (p: number) => void): Promise<string>
@@ -20,7 +22,8 @@ export interface DriveApi {
   download(fileID: string): Promise<Blob>
 }
 
-const API = 'https://www.googleapis.com/drive/v3'
+const API = '/api/google/drive/v3'
+const UPLOAD = '/api/google/upload/drive/v3/files'
 const FOLDER_MIME = 'application/vnd.google-apps.folder'
 const esc = (v: string) => v.replace(/\\/g, '\\\\').replace(/'/g, "\\'")
 
@@ -36,20 +39,10 @@ export function failureForStatus(status: number, body = ''): UploadFailure {
   return 'unknown'
 }
 
-async function token(): Promise<string> {
-  try {
-    return await GoogleAuth.driveToken()
-  } catch {
-    throw new DriveError('authExpired')
-  }
-}
-
 async function call<T>(url: string, init: RequestInit = {}): Promise<T> {
-  const headers = new Headers(init.headers)
-  headers.set('Authorization', `Bearer ${await token()}`)
   let res: Response
   try {
-    res = await fetch(url, { ...init, headers })
+    res = await fetch(url, { ...init, credentials: 'same-origin', cache: 'no-store' })
   } catch {
     throw new DriveError('network')
   }
@@ -72,6 +65,13 @@ async function listFiles(q: string, orderBy?: string): Promise<DriveFolder[]> {
 }
 
 export const GoogleDrive: DriveApi = {
+  async ensureAppFolder() {
+    const name = DriveNaming.defaultFolderName
+    const q = `name='${esc(name)}' and 'root' in parents and mimeType='${FOLDER_MIME}' and trashed=false`
+    const existing = await listFiles(q)
+    return existing[0] ?? GoogleDrive.createFolder(name)
+  },
+
   listFolders(parentID, query) {
     let q = `'${esc(parentID ?? 'root')}' in parents and mimeType='${FOLDER_MIME}' and trashed=false`
     if (query?.trim()) q += ` and name contains '${esc(query.trim())}'`
@@ -91,15 +91,14 @@ export const GoogleDrive: DriveApi = {
 
   /** Multipart upload via XHR so we get progress events. Files are small (< 5 MB). */
   async upload(data, name, parentID, appProperties, onProgress) {
-    const accessToken = await token()
     const metadata = { name, parents: [parentID], mimeType: data.type, appProperties: { ...appProperties, [DriveNaming.appPropertyKey]: '1' } }
     const form = new FormData()
     form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }))
     form.append('file', data)
     return new Promise<string>((resolve, reject) => {
       const xhr = new XMLHttpRequest()
-      xhr.open('POST', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id')
-      xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`)
+      xhr.open('POST', `${UPLOAD}?uploadType=multipart&fields=id`)
+      xhr.withCredentials = true
       xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress(Math.min(0.99, e.loaded / e.total)) }
       xhr.onload = () => {
         if (xhr.status >= 200 && xhr.status < 300) {
@@ -141,6 +140,10 @@ export function createMockDrive(): DriveApi & { failNext?: UploadFailure } {
   }
   const files = new Map<string, Blob>()
   const mock: DriveApi & { failNext?: UploadFailure } = {
+    async ensureAppFolder() {
+      await sleep(400)
+      return folders.root.find((f) => f.name === DriveNaming.defaultFolderName) ?? mock.createFolder(DriveNaming.defaultFolderName)
+    },
     async listFolders(parentID, query) {
       await sleep(400)
       const all = folders[parentID ?? 'root'] ?? []
